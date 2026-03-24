@@ -23,7 +23,7 @@ IMPORTANT: When the user asks you to create, add, or suggest tasks, you MUST inc
 \`\`\`actions
 [
   {"action": "add_task", "column": "To Do", "title": "Task title", "priority": "medium", "description": "optional description"},
-  {"action": "add_task", "column": "In Progress", "title": "Another task", "priority": "high"}
+  {"action": "move_task", "column": "In Progress", "title": "Existing task title"}
 ]
 \`\`\`
 
