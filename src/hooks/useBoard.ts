@@ -37,7 +37,7 @@ export function useBoard(userId: string | undefined) {
 
     setBoardData({ board, columns: columnsWithTasks });
     setLoading(false);
-  }, []);
+  }, [userId]);
 
   useEffect(() => { loadBoard(); }, [loadBoard]);
 
