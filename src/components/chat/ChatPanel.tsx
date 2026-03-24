@@ -1,37 +1,83 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Bot, Send, X, Sparkles, User } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import type { BoardData } from '@/types/kanban';
+import type { BoardData, Priority } from '@/types/kanban';
+import { toast } from 'sonner';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
 }
 
+interface BoardAction {
+  action: string;
+  column?: string;
+  title?: string;
+  priority?: Priority;
+  description?: string;
+}
+
 interface ChatPanelProps {
   open: boolean;
   onClose: () => void;
   boardData: BoardData | null;
+  onAddTask?: (columnId: string, task: { title: string; description?: string; priority: Priority; category?: string; due_date?: string; progress?: number }) => void;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kanban-chat`;
 
-export function ChatPanel({ open, onClose, boardData }: ChatPanelProps) {
+function parseActions(content: string): { cleanContent: string; actions: BoardAction[] } {
+  const actionsRegex = /```actions\s*\n([\s\S]*?)```/;
+  const match = content.match(actionsRegex);
+  if (!match) return { cleanContent: content, actions: [] };
+  
+  try {
+    const actions = JSON.parse(match[1]) as BoardAction[];
+    const cleanContent = content.replace(actionsRegex, '').trim();
+    return { cleanContent, actions };
+  } catch {
+    return { cleanContent: content, actions: [] };
+  }
+}
+
+export function ChatPanel({ open, onClose, boardData, onAddTask }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: "👋 Hi! I'm your AI assistant. I can help you **manage your board**, **suggest tasks**, **summarize progress**, or **break down complex tasks**. What would you like help with?" }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const actionsExecutedRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const executeActions = (actions: BoardAction[]) => {
+    if (!onAddTask || !boardData) return;
+    
+    let tasksCreated = 0;
+    for (const action of actions) {
+      if (action.action === 'add_task' && action.title && action.column) {
+        const column = boardData.columns.find(c => c.title.toLowerCase() === action.column!.toLowerCase());
+        if (column) {
+          onAddTask(column.id, {
+            title: action.title,
+            description: action.description,
+            priority: action.priority || 'medium',
+          });
+          tasksCreated++;
+        }
+      }
+    }
+    if (tasksCreated > 0) {
+      toast.success(`${tasksCreated} task${tasksCreated > 1 ? 's' : ''} created by AI!`);
+    }
+  };
 
   const buildBoardContext = () => {
     if (!boardData) return 'No board data available.';
@@ -52,6 +98,8 @@ export function ChatPanel({ open, onClose, boardData }: ChatPanelProps) {
     setIsLoading(true);
 
     let assistantSoFar = '';
+    const messageKey = Date.now().toString();
+    
     const upsertAssistant = (chunk: string) => {
       assistantSoFar += chunk;
       setMessages(prev => {
@@ -108,6 +156,24 @@ export function ChatPanel({ open, onClose, boardData }: ChatPanelProps) {
             textBuffer = line + '\n' + textBuffer;
             break;
           }
+        }
+      }
+
+      // After streaming is done, parse and execute actions
+      const { cleanContent, actions } = parseActions(assistantSoFar);
+      if (actions.length > 0) {
+        // Update the message to show clean content without the actions block
+        setMessages(prev => {
+          const updated = [...prev];
+          if (updated[updated.length - 1]?.role === 'assistant') {
+            updated[updated.length - 1] = { ...updated[updated.length - 1], content: cleanContent };
+          }
+          return updated;
+        });
+        
+        if (!actionsExecutedRef.current.has(messageKey)) {
+          actionsExecutedRef.current.add(messageKey);
+          executeActions(actions);
         }
       }
     } catch (e: any) {

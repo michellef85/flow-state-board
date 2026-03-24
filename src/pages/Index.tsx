@@ -74,7 +74,7 @@ const Index = () => {
             ) : null}
           </div>
 
-          <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} boardData={boardData} />
+          <ChatPanel open={chatOpen} onClose={() => setChatOpen(false)} boardData={boardData} onAddTask={addTask} />
         </div>
       </div>
     </div>
