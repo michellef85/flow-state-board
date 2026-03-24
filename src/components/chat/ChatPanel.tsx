@@ -24,6 +24,7 @@ interface ChatPanelProps {
   onClose: () => void;
   boardData: BoardData | null;
   onAddTask?: (columnId: string, task: { title: string; description?: string; priority: Priority; category?: string; due_date?: string; progress?: number }) => void;
+  onMoveTask?: (taskId: string, newColumnId: string, newPosition: number) => void;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kanban-chat`;
