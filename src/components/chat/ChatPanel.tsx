@@ -59,11 +59,12 @@ export function ChatPanel({ open, onClose, boardData, onAddTask, onMoveTask }: C
   }, [messages]);
 
   const executeActions = (actions: BoardAction[]) => {
-    if (!onAddTask || !boardData) return;
+    if (!boardData) return;
     
     let tasksCreated = 0;
+    let tasksMoved = 0;
     for (const action of actions) {
-      if (action.action === 'add_task' && action.title && action.column) {
+      if (action.action === 'add_task' && action.title && action.column && onAddTask) {
         const column = boardData.columns.find(c => c.title.toLowerCase() === action.column!.toLowerCase());
         if (column) {
           onAddTask(column.id, {
@@ -73,11 +74,23 @@ export function ChatPanel({ open, onClose, boardData, onAddTask, onMoveTask }: C
           });
           tasksCreated++;
         }
+      } else if (action.action === 'move_task' && action.title && action.column && onMoveTask) {
+        const targetColumn = boardData.columns.find(c => c.title.toLowerCase() === action.column!.toLowerCase());
+        // Find the task by title across all columns
+        let foundTask = null;
+        for (const col of boardData.columns) {
+          const task = col.tasks.find(t => t.title.toLowerCase() === action.title!.toLowerCase());
+          if (task) { foundTask = task; break; }
+        }
+        if (targetColumn && foundTask) {
+          const newPosition = targetColumn.tasks.length;
+          onMoveTask(foundTask.id, targetColumn.id, newPosition);
+          tasksMoved++;
+        }
       }
     }
-    if (tasksCreated > 0) {
-      toast.success(`${tasksCreated} task${tasksCreated > 1 ? 's' : ''} created by AI!`);
-    }
+    if (tasksCreated > 0) toast.success(`${tasksCreated} task${tasksCreated > 1 ? 's' : ''} created by AI!`);
+    if (tasksMoved > 0) toast.success(`${tasksMoved} task${tasksMoved > 1 ? 's' : ''} moved by AI!`);
   };
 
   const buildBoardContext = () => {
