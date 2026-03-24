@@ -5,19 +5,18 @@ import { toast } from 'sonner';
 
 const DEFAULT_COLUMNS = ['To Do', 'In Progress', 'Completed'];
 
-export function useBoard() {
+export function useBoard(userId: string | undefined) {
   const [boardData, setBoardData] = useState<BoardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadBoard = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
+    if (!userId) { setLoading(false); return; }
 
-    let { data: boards } = await supabase.from('boards').select('*').eq('user_id', user.id).limit(1);
+    let { data: boards } = await supabase.from('boards').select('*').eq('user_id', userId).limit(1);
 
     let board: Board;
     if (!boards || boards.length === 0) {
-      const { data: newBoard, error } = await supabase.from('boards').insert({ user_id: user.id, title: 'My Board' }).select().single();
+      const { data: newBoard, error } = await supabase.from('boards').insert({ user_id: userId, title: 'My Board' }).select().single();
       if (error || !newBoard) { toast.error('Failed to create board'); setLoading(false); return; }
       board = newBoard as Board;
 
@@ -38,7 +37,7 @@ export function useBoard() {
 
     setBoardData({ board, columns: columnsWithTasks });
     setLoading(false);
-  }, []);
+  }, [userId]);
 
   useEffect(() => { loadBoard(); }, [loadBoard]);
 

@@ -9,7 +9,7 @@ import { Kanban, MessageSquare, LogOut, Loader2 } from 'lucide-react';
 
 const Index = () => {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { boardData, loading: boardLoading, addTask, updateTask, deleteTask, moveTask, addColumn, deleteColumn } = useBoard();
+  const { boardData, loading: boardLoading, addTask, updateTask, deleteTask, moveTask, addColumn, deleteColumn } = useBoard(user?.id);
   const [chatOpen, setChatOpen] = useState(false);
 
   if (authLoading) {

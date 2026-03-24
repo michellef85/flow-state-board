@@ -136,7 +136,7 @@ export function ChatPanel({ open, onClose, boardData }: ChatPanelProps) {
         </Button>
       </div>
 
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto p-4" ref={scrollRef}>
         <div className="space-y-4">
           {messages.map((msg, i) => (
             <div key={i} className={`flex gap-2.5 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
@@ -167,7 +167,7 @@ export function ChatPanel({ open, onClose, boardData }: ChatPanelProps) {
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       <div className="p-4 border-t">
         <div className="flex gap-2">
