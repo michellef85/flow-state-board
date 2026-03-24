@@ -24,6 +24,7 @@ interface ChatPanelProps {
   onClose: () => void;
   boardData: BoardData | null;
   onAddTask?: (columnId: string, task: { title: string; description?: string; priority: Priority; category?: string; due_date?: string; progress?: number }) => void;
+  onMoveTask?: (taskId: string, newColumnId: string, newPosition: number) => void;
 }
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/kanban-chat`;
@@ -42,7 +43,7 @@ function parseActions(content: string): { cleanContent: string; actions: BoardAc
   }
 }
 
-export function ChatPanel({ open, onClose, boardData, onAddTask }: ChatPanelProps) {
+export function ChatPanel({ open, onClose, boardData, onAddTask, onMoveTask }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: "👋 Hi! I'm your AI assistant. I can help you **manage your board**, **suggest tasks**, **summarize progress**, or **break down complex tasks**. What would you like help with?" }
   ]);
@@ -58,11 +59,12 @@ export function ChatPanel({ open, onClose, boardData, onAddTask }: ChatPanelProp
   }, [messages]);
 
   const executeActions = (actions: BoardAction[]) => {
-    if (!onAddTask || !boardData) return;
+    if (!boardData) return;
     
     let tasksCreated = 0;
+    let tasksMoved = 0;
     for (const action of actions) {
-      if (action.action === 'add_task' && action.title && action.column) {
+      if (action.action === 'add_task' && action.title && action.column && onAddTask) {
         const column = boardData.columns.find(c => c.title.toLowerCase() === action.column!.toLowerCase());
         if (column) {
           onAddTask(column.id, {
@@ -72,11 +74,23 @@ export function ChatPanel({ open, onClose, boardData, onAddTask }: ChatPanelProp
           });
           tasksCreated++;
         }
+      } else if (action.action === 'move_task' && action.title && action.column && onMoveTask) {
+        const targetColumn = boardData.columns.find(c => c.title.toLowerCase() === action.column!.toLowerCase());
+        // Find the task by title across all columns
+        let foundTask = null;
+        for (const col of boardData.columns) {
+          const task = col.tasks.find(t => t.title.toLowerCase() === action.title!.toLowerCase());
+          if (task) { foundTask = task; break; }
+        }
+        if (targetColumn && foundTask) {
+          const newPosition = targetColumn.tasks.length;
+          onMoveTask(foundTask.id, targetColumn.id, newPosition);
+          tasksMoved++;
+        }
       }
     }
-    if (tasksCreated > 0) {
-      toast.success(`${tasksCreated} task${tasksCreated > 1 ? 's' : ''} created by AI!`);
-    }
+    if (tasksCreated > 0) toast.success(`${tasksCreated} task${tasksCreated > 1 ? 's' : ''} created by AI!`);
+    if (tasksMoved > 0) toast.success(`${tasksMoved} task${tasksMoved > 1 ? 's' : ''} moved by AI!`);
   };
 
   const buildBoardContext = () => {

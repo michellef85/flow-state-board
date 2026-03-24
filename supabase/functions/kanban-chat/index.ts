@@ -23,13 +23,14 @@ IMPORTANT: When the user asks you to create, add, or suggest tasks, you MUST inc
 \`\`\`actions
 [
   {"action": "add_task", "column": "To Do", "title": "Task title", "priority": "medium", "description": "optional description"},
-  {"action": "add_task", "column": "In Progress", "title": "Another task", "priority": "high"}
+  {"action": "move_task", "column": "In Progress", "title": "Existing task title"}
 ]
 \`\`\`
 
 Valid columns are the ones shown in the board state above (e.g. "To Do", "In Progress", "Completed").
 Valid priorities: "low", "medium", "high".
-The actions block must be valid JSON inside the code fence. Always include it when the user wants tasks created or moved.
+Valid actions: "add_task" (to create a new task), "move_task" (to move an existing task to a different column — use the exact task title from the board state).
+The actions block must be valid JSON inside the code fence. Always include it when the user wants tasks created, moved, or reorganized.
 
 Keep responses concise, friendly, and actionable. Use markdown formatting for the text portion.`;
 
