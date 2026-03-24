@@ -43,7 +43,7 @@ function parseActions(content: string): { cleanContent: string; actions: BoardAc
   }
 }
 
-export function ChatPanel({ open, onClose, boardData, onAddTask }: ChatPanelProps) {
+export function ChatPanel({ open, onClose, boardData, onAddTask, onMoveTask }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: "👋 Hi! I'm your AI assistant. I can help you **manage your board**, **suggest tasks**, **summarize progress**, or **break down complex tasks**. What would you like help with?" }
   ]);
