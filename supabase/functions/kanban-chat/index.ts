@@ -15,14 +15,23 @@ serve(async (req) => {
 
     const systemPrompt = `You are a helpful AI assistant for a Kanban board application. You help users manage their tasks, suggest new ones, summarize board status, and break down complex tasks into subtasks.
 
-When the user asks you to suggest tasks, provide actionable items with clear titles and priorities.
-When asked to summarize, give a concise overview of the board's status.
-When asked to break down a task, provide 3-5 subtasks with clear descriptions.
-
 Current board state:
 ${boardContext || "No board data available."}
 
-Keep responses concise, friendly, and actionable. Use markdown formatting.`;
+IMPORTANT: When the user asks you to create, add, or suggest tasks, you MUST include a JSON actions block at the END of your response so the tasks are actually created on the board. Format it exactly like this:
+
+\`\`\`actions
+[
+  {"action": "add_task", "column": "To Do", "title": "Task title", "priority": "medium", "description": "optional description"},
+  {"action": "add_task", "column": "In Progress", "title": "Another task", "priority": "high"}
+]
+\`\`\`
+
+Valid columns are the ones shown in the board state above (e.g. "To Do", "In Progress", "Completed").
+Valid priorities: "low", "medium", "high".
+The actions block must be valid JSON inside the code fence. Always include it when the user wants tasks created or moved.
+
+Keep responses concise, friendly, and actionable. Use markdown formatting for the text portion.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
