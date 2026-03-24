@@ -12,11 +12,11 @@ export function useBoard(userId: string | undefined) {
   const loadBoard = useCallback(async () => {
     if (!userId) { setLoading(false); return; }
 
-    let { data: boards } = await supabase.from('boards').select('*').eq('user_id', user.id).limit(1);
+    let { data: boards } = await supabase.from('boards').select('*').eq('user_id', userId).limit(1);
 
     let board: Board;
     if (!boards || boards.length === 0) {
-      const { data: newBoard, error } = await supabase.from('boards').insert({ user_id: user.id, title: 'My Board' }).select().single();
+      const { data: newBoard, error } = await supabase.from('boards').insert({ user_id: userId, title: 'My Board' }).select().single();
       if (error || !newBoard) { toast.error('Failed to create board'); setLoading(false); return; }
       board = newBoard as Board;
 
