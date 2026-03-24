@@ -5,13 +5,12 @@ import { toast } from 'sonner';
 
 const DEFAULT_COLUMNS = ['To Do', 'In Progress', 'Completed'];
 
-export function useBoard() {
+export function useBoard(userId: string | undefined) {
   const [boardData, setBoardData] = useState<BoardData | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadBoard = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
+    if (!userId) { setLoading(false); return; }
 
     let { data: boards } = await supabase.from('boards').select('*').eq('user_id', user.id).limit(1);
 
