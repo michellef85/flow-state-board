@@ -32,7 +32,7 @@ export function AppSidebar({ currentView, onViewChange, onSignOut }: AppSidebarP
         <div className="w-10 h-10 rounded-xl bg-sidebar-primary flex items-center justify-center shrink-0">
           <Kanban className="h-5 w-5 text-sidebar-primary-foreground" />
         </div>
-        {expanded && <span className="font-display font-bold text-sidebar-foreground text-lg truncate">TaskFlow</span>}
+        {expanded && <span className="font-display font-bold text-sidebar-foreground text-lg truncate">Track Your Progress</span>}
       </div>
 
       {/* Expand/Collapse toggle */}
