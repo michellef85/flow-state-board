@@ -6,6 +6,7 @@ import { Plus } from 'lucide-react';
 import { KanbanColumn } from './KanbanColumn';
 import { TaskDialog } from './TaskDialog';
 import type { BoardData, Task, Priority } from '@/types/kanban';
+import confetti from 'canvas-confetti';
 
 interface KanbanBoardProps {
   boardData: BoardData;
@@ -24,10 +25,39 @@ export function KanbanBoard({ boardData, onMoveTask, onAddTask, onUpdateTask, on
   const [newColumnName, setNewColumnName] = useState('');
   const [showNewColumn, setShowNewColumn] = useState(false);
 
+  const fireConfetti = () => {
+    const duration = 2000;
+    const end = Date.now() + duration;
+    const colors = ['#7c3aed', '#a78bfa', '#c4b5fd', '#fbbf24', '#34d399', '#f472b6'];
+
+    (function frame() {
+      confetti({
+        particleCount: 3,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.7 },
+        colors,
+      });
+      confetti({
+        particleCount: 3,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.7 },
+        colors,
+      });
+      if (Date.now() < end) requestAnimationFrame(frame);
+    })();
+  };
+
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     const { draggableId, destination } = result;
     onMoveTask(draggableId, destination.droppableId, destination.index);
+
+    const targetColumn = boardData.columns.find(c => c.id === destination.droppableId);
+    if (targetColumn && targetColumn.title.toLowerCase().includes('completed')) {
+      fireConfetti();
+    }
   };
 
   const handleAddTask = (columnId: string) => {
